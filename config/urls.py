@@ -1,47 +1,33 @@
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
-from drf_yasg import openapi
-from drf_yasg.generators import OpenAPISchemaGenerator
-from drf_yasg.views import get_schema_view
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from drf_spectacular.openapi import AutoSchema
 from rest_framework import permissions
-
 from config.settings import (
     base as settings,
     django_settings_module,
 )
 
 
-class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
-    def get_schema(self, request=None, public=False):
-        schema = super().get_schema(request, public)
-        schema.schemes = (
-            ["http"] if django_settings_module == "development" else ["https"]
-        )
-        return schema
+class BothHttpAndHttpsSchemaGenerator(AutoSchema):
+    """Custom schema generator for HTTP/HTTPS handling"""
 
+    def get_servers(self):
+        if django_settings_module == "development":
+            return [{"url": "http://localhost:8000/api/v1", "description": "Development server"}]
+        else:
+            return [{"url": "https://admin.77.uz/api/v1", "description": "Production server"}]
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Astrum Academy API",
-        default_version="v1",
-        description="API for Astrum IT Academy website",
-        terms_of_service="https://www.astrum.uz/terms/",
-        contact=openapi.Contact(email="info@astrum.uz"),
-        license=openapi.License(name="MIT License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-    generator_class=BothHttpAndHttpsSchemaGenerator,
-)
 
 urlpatterns = [
     path("default-admin-panel/", admin.site.urls),
-]
 
-# urlpatterns += [
-#     path("api/v1/app/)", include(("app.urls", "app"), "app")),
-# ]
+    # API endpoints
+    path("api/v1/accounts/", include(("apps.accounts.urls", "accounts"), "accounts")),
+    path("api/v1/store/", include(("apps.store.urls", "store"), "store")),
+    path("api/v1/common/", include(("apps.common.urls", "common"), "common")),
+]
 
 if django_settings_module == "development":
     urlpatterns += [
@@ -54,19 +40,20 @@ if django_settings_module == "development":
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
     urlpatterns += [
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
         path(
             "swagger/",
-            schema_view.with_ui("swagger", cache_timeout=0),
+            SpectacularSwaggerView.as_view(url_name="schema"),
             name="schema-swagger-ui",
         ),
         path(
             "redoc/",
-            schema_view.with_ui("redoc", cache_timeout=0),
+            SpectacularRedocView.as_view(url_name="schema"),
             name="schema-redoc",
         ),
         re_path(
             r"^swagger(?P<format>\.json|\.yaml)$",
-            schema_view.without_ui(cache_timeout=0),
+            SpectacularAPIView.as_view(),
             name="schema-json",
         ),
     ]
