@@ -9,8 +9,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'full_name', 'phone_number', 'profile_photo', 'address', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'full_name', 'phone_number', 'profile_photo', 'role', 'address', 'created_at']
+        read_only_fields = ['id', 'role', 'created_at']
 
     def get_address(self, obj):
         address = obj.addresses.filter(is_default=True).first()
@@ -21,6 +21,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 'long': address.long
             }
         return None
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    """Admin uchun user list"""
+
+    class Meta:
+        model = User
+        fields = ['id', 'full_name', 'phone_number', 'role', 'is_verified', 'created_at']
 
 
 class UserProfileEditSerializer(serializers.ModelSerializer):
@@ -112,6 +120,15 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
         validated_data['user'] = user
 
         return super().create(validated_data)
+
+
+class SellerRegistrationListSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = SellerRegistration
+        fields = ['id', 'user', 'full_name', 'project_name', 'category', 'phone_number', 'address', 'status',
+                  'created_at']
 
 
 class TokenRefreshSerializer(serializers.Serializer):

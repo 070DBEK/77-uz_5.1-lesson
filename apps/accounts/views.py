@@ -7,10 +7,12 @@ from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.contrib.auth import authenticate
 from .models import User, SellerRegistration
+from .permissions import IsSuperAdmin, IsAdmin, CanManageSellers
 from .serializers import (
     UserProfileSerializer, UserProfileEditSerializer, UserLoginSerializer,
     UserRegisterSerializer, LoginResponseSerializer, SellerRegistrationSerializer,
-    TokenRefreshSerializer, TokenVerifySerializer
+    TokenRefreshSerializer, TokenVerifySerializer, UserListSerializer,
+    SellerRegistrationListSerializer
 )
 
 
@@ -30,6 +32,76 @@ class UserProfileEditView(generics.UpdateAPIView):
         return self.request.user
 
 
+# Admin endpoints
+class UserListView(generics.ListAPIView):
+    """Admin: List of all users"""
+    serializer_class = UserListSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        if self.request.user.role == 'super_admin':
+            return User.objects.all()
+        else:  # admin
+            return User.objects.exclude(role='super_admin')
+
+
+class SellerRegistrationListView(generics.ListAPIView):
+    """Admin: Seller Application List"""
+    queryset = SellerRegistration.objects.all()
+    serializer_class = SellerRegistrationListSerializer
+    permission_classes = [CanManageSellers]
+
+
+@api_view(['POST'])
+@permission_classes([CanManageSellers])
+def approve_seller_registration(request, registration_id):
+    """Admin: Confirm Seller Application"""
+    try:
+        registration = SellerRegistration.objects.get(id=registration_id)
+        registration.status = 'approved'
+        registration.save()
+
+        # User rolini seller qilish
+        registration.user.role = 'seller'
+        registration.user.save()
+
+        return Response({'message': 'Seller registration approved'})
+    except SellerRegistration.DoesNotExist:
+        return Response({'error': 'Registration not found'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([CanManageSellers])
+def reject_seller_registration(request, registration_id):
+    """Admin: Reject Seller Application"""
+    try:
+        registration = SellerRegistration.objects.get(id=registration_id)
+        registration.status = 'rejected'
+        registration.save()
+
+        return Response({'message': 'Seller registration rejected'})
+    except SellerRegistration.DoesNotExist:
+        return Response({'error': 'Registration not found'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([IsSuperAdmin])
+def create_admin_user(request):
+    """Super Admin: Create Admin User"""
+    serializer = UserRegisterSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        user.role = 'admin'
+        user.save()
+
+        return Response({
+            'message': 'Admin user created successfully',
+            'user': UserProfileSerializer(user).data
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Public endpoints
 @extend_schema(
     request=UserLoginSerializer,
     responses={
@@ -37,8 +109,6 @@ class UserProfileEditView(generics.UpdateAPIView):
         401: OpenApiResponse(description='Invalid credentials'),
     }
 )
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -62,8 +132,6 @@ def login_view(request):
         400: OpenApiResponse(description='Invalid data'),
     }
 )
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
@@ -87,8 +155,6 @@ def register_view(request):
         400: OpenApiResponse(description='Invalid data'),
     }
 )
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def seller_registration_view(request):
@@ -115,8 +181,6 @@ def seller_registration_view(request):
         400: OpenApiResponse(description='Invalid refresh token'),
     }
 )
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token_refresh_view(request):
@@ -140,8 +204,6 @@ def token_refresh_view(request):
         400: OpenApiResponse(description='Invalid token'),
     }
 )
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token_verify_view(request):

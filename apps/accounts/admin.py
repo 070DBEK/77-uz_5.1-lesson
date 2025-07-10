@@ -24,11 +24,28 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.role == 'super_admin' and request.user.role != 'super_admin':
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.role == 'super_admin' and request.user.role != 'super_admin':
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.role == 'admin':
+            # Admin faqat o'zidan past darajadagi userlarni ko'radi
+            return qs.exclude(role='super_admin')
+        return qs
+
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ['user', 'name', 'is_default', 'created_at']
-    list_filter = ['is_default', 'created_at']
+    list_display = ['user', 'name', 'region', 'district', 'is_default', 'created_at']
+    list_filter = ['is_default', 'region', 'created_at']
     search_fields = ['user__phone_number', 'name']
 
 
@@ -54,3 +71,9 @@ class SellerRegistrationAdmin(admin.ModelAdmin):
 
     approve_registrations.short_description = 'Approve selected registrations'
     reject_registrations.short_description = 'Reject selected registrations'
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.role in ['super_admin', 'admin']
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.role in ['super_admin', 'admin']

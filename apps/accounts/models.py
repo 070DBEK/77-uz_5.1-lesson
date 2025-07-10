@@ -18,7 +18,7 @@ class User(AbstractUser):
     phone_number = models.CharField(
         max_length=15,
         unique=True,
-        validators=[RegexValidator(regex=r'^\+\d{1,15}$', message='Phone number must be in format: +999999999')]
+        validators=[RegexValidator(regex=r'^\+\d{1,15}$', message='Phone number must be in format: +9981234567  ')]
     )
     profile_photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
@@ -36,6 +36,31 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.phone_number
+
+    @property
+    def is_super_admin(self):
+        return self.role == 'super_admin'
+
+    @property
+    def is_admin_user(self):
+        return self.role in ['super_admin', 'admin']
+
+    @property
+    def is_seller_user(self):
+        return self.role == 'seller'
+
+    def save(self, *args, **kwargs):
+        if self.role == 'super_admin':
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.role == 'admin':
+            self.is_staff = True
+            self.is_superuser = False
+        else:
+            self.is_staff = False
+            self.is_superuser = False
+
+        super().save(*args, **kwargs)
 
 
 class Address(models.Model):
