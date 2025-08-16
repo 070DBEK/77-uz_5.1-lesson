@@ -1,7 +1,6 @@
 from django.urls import path
 from . import views
 
-
 urlpatterns = [
     # Public endpoints
     path('login/', views.login_view, name='login'),
@@ -23,12 +22,12 @@ urlpatterns = [
     ),
     path(
         'admin/seller-registrations/<int:registration_id>/approve/',
-         views.approve_seller_registration,
+        views.approve_seller_registration,
          name='approve-seller'
     ),
     path(
         'admin/seller-registrations/<int:registration_id>/reject/',
-         views.reject_seller_registration,
+        views.reject_seller_registration,
          name='reject-seller'
     ),
 

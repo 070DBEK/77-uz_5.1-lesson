@@ -6,11 +6,16 @@ User = get_user_model()
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
-    product_count = serializers.CharField(read_only=True)
+    product_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
         fields = ['id', 'name', 'icon', 'product_count']
+
+    def get_product_count(self, obj):
+        # YAML da string format bor, lekin bizda integer
+        count = obj.product_count
+        return f"{count:,}" if count > 999 else str(count)
 
 
 class CategoryWithChildrenSerializer(serializers.ModelSerializer):
@@ -43,17 +48,20 @@ class AdListSerializer(serializers.ModelSerializer):
     address = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     updated_time = serializers.DateTimeField(source='updated_at', read_only=True)
+    name = serializers.SerializerMethodField()  # YAML da faqat 'name' bor
 
     class Meta:
         model = Ad
         fields = ['id', 'name', 'slug', 'price', 'photo', 'published_at', 'address', 'seller', 'is_liked',
                   'updated_time']
 
+    def get_name(self, obj):
+        return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
+
     def get_photo(self, obj):
         return obj.main_photo
 
     def get_address(self, obj):
-        # Get seller's default address
         address = obj.seller.addresses.filter(is_default=True).first()
         return address.name if address else ""
 
@@ -71,11 +79,19 @@ class AdDetailSerializer(serializers.ModelSerializer):
     address = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     updated_time = serializers.DateTimeField(source='updated_at', read_only=True)
+    name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
     class Meta:
         model = Ad
         fields = ['id', 'name', 'slug', 'description', 'price', 'photos', 'published_at', 'address', 'seller',
                   'category', 'is_liked', 'view_count', 'updated_time']
+
+    def get_name(self, obj):
+        return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
+
+    def get_description(self, obj):
+        return obj.description_uz or obj.description_ru or ""
 
     def get_photos(self, obj):
         return [photo.image.url for photo in obj.photos.all()]
@@ -119,11 +135,15 @@ class MyAdSerializer(serializers.ModelSerializer):
     address = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     updated_time = serializers.DateTimeField(source='updated_at', read_only=True)
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = Ad
         fields = ['id', 'name', 'slug', 'price', 'photo', 'published_at', 'address', 'status', 'view_count', 'is_liked',
                   'updated_time']
+
+    def get_name(self, obj):
+        return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
 
     def get_photo(self, obj):
         return obj.main_photo
@@ -139,11 +159,19 @@ class MyAdSerializer(serializers.ModelSerializer):
 class MyAdDetailSerializer(serializers.ModelSerializer):
     photos = serializers.SerializerMethodField()
     updated_time = serializers.DateTimeField(source='updated_at', read_only=True)
+    name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
     class Meta:
         model = Ad
         fields = ['id', 'name', 'slug', 'description', 'category', 'price', 'photos', 'published_at', 'status',
                   'view_count', 'updated_time']
+
+    def get_name(self, obj):
+        return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
+
+    def get_description(self, obj):
+        return obj.description_uz or obj.description_ru or ""
 
     def get_photos(self, obj):
         return [photo.image.url for photo in obj.photos.all()]
@@ -151,6 +179,8 @@ class MyAdDetailSerializer(serializers.ModelSerializer):
 
 class AdUpdateSerializer(serializers.ModelSerializer):
     new_photos = serializers.ListField(child=serializers.URLField(), write_only=True, required=False)
+    name = serializers.CharField(max_length=255)  # YAML da faqat 'name' bor
+    description = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Ad
@@ -158,8 +188,20 @@ class AdUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         new_photos = validated_data.pop('new_photos', [])
+        name = validated_data.pop('name', None)
+        description = validated_data.pop('description', None)
 
-        # Update ad fields
+        # Update name fields
+        if name:
+            instance.name_uz = name
+            instance.name_ru = name
+
+        # Update description fields
+        if description is not None:
+            instance.description_uz = description
+            instance.description_ru = description
+
+        # Update other fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -195,9 +237,9 @@ class FavouriteProductResponseSerializer(serializers.ModelSerializer):
 
 
 class MyFavouriteProductSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='name')
+    name = serializers.SerializerMethodField()
     slug = serializers.CharField()
-    description = serializers.CharField(source='description')
+    description = serializers.SerializerMethodField()
     photo = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
     seller = serializers.SerializerMethodField()
@@ -208,6 +250,12 @@ class MyFavouriteProductSerializer(serializers.ModelSerializer):
         model = Ad
         fields = ['id', 'name', 'slug', 'description', 'price', 'published_at', 'address', 'seller', 'photo',
                   'is_liked', 'updated_time']
+
+    def get_name(self, obj):
+        return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
+
+    def get_description(self, obj):
+        return obj.description_uz or obj.description_ru or ""
 
     def get_photo(self, obj):
         return obj.main_photo
