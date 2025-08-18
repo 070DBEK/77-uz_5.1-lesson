@@ -78,11 +78,12 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True)
-    role = serializers.ChoiceField(choices=User.PUBLIC_ROLE_CHOICES, default='customer')
+
+    # Role field'ni olib tashlaymiz - faqat customer bo'ladi
 
     class Meta:
         model = User
-        fields = ['full_name', 'phone_number', 'password', 'password_confirm', 'role']
+        fields = ['full_name', 'phone_number', 'password', 'password_confirm']
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 8}
         }
@@ -94,7 +95,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-        # Custom manager'dan foydalanish
+        # Har doim customer sifatida yaratish
+        validated_data['role'] = 'customer'
         user = User.objects.create_user(**validated_data)
         return user
 
@@ -111,6 +113,18 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerRegistration
         fields = ['full_name', 'project_name', 'category', 'phone_number', 'address']
+
+    def validate(self, attrs):
+        # Faqat customer'lar seller bo'lish uchun ariza bera oladi
+        user = self.context['request'].user
+        if user.role != 'customer':
+            raise serializers.ValidationError("Only customers can apply to become sellers")
+
+        # Avval ariza berganmi tekshirish
+        if SellerRegistration.objects.filter(user=user).exists():
+            raise serializers.ValidationError("You have already submitted a seller application")
+
+        return attrs
 
     def create(self, validated_data):
         user = self.context['request'].user

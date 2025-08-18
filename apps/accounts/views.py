@@ -75,9 +75,14 @@ def approve_seller_registration(request, registration_id):
 
         # User rolini seller qilish
         registration.user.role = 'seller'
+        registration.user.is_verified = True  # Seller sifatida tasdiqlangan
         registration.user.save()
 
-        return Response({'message': 'Seller registration approved'})
+        return Response({
+            'message': 'Seller registration approved',
+            'user_id': registration.user.id,
+            'new_role': registration.user.role
+        })
     except SellerRegistration.DoesNotExist:
         return Response({'error': 'Registration not found'}, status=404)
 
@@ -132,12 +137,13 @@ def create_admin_user(request):
     request=UserLoginSerializer,
     responses={
         200: OpenApiResponse(response=LoginResponseSerializer, description='Successful login'),
-        401: OpenApiResponse(description='Invalid credentials'),
+        400: OpenApiResponse(description='Invalid credentials'),
     }
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
+    """Login endpoint - PUBLIC"""
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data['user']
@@ -147,7 +153,7 @@ def login_view(request):
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh),
             'user': UserProfileSerializer(user).data
-        })
+        }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -161,9 +167,10 @@ def login_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
+    """Register endpoint - Har doim customer sifatida ro'yxatdan o'tish"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()
+        user = serializer.save()  # Har doim customer bo'ladi
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -184,6 +191,7 @@ def register_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def seller_registration_view(request):
+    """Customer'dan Seller bo'lish uchun ariza berish"""
     serializer = SellerRegistrationSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         registration = serializer.save()
@@ -195,6 +203,7 @@ def seller_registration_view(request):
             'phone_number': registration.phone_number,
             'address': registration.address,
             'status': registration.status,
+            'message': 'Seller application submitted successfully. Please wait for admin approval.',
             'created_at': registration.created_at
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

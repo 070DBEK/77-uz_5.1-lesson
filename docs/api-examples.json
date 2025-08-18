@@ -1,0 +1,846 @@
+{
+  "endpoints": {
+    "accounts": {
+      "register": {
+        "endpoint": "POST /api/v1/accounts/register/",
+        "description": "Yangi foydalanuvchi ro'yxatdan o'tish",
+        "access": "Public",
+        "request": {
+          "full_name": "Ozodbek Karimov",
+          "phone_number": "+998901234567",
+          "password": "mypassword123",
+          "password_confirm": "mypassword123"
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+            "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+            "user": {
+              "id": 1,
+              "full_name": "Ozodbek Karimov",
+              "phone_number": "+998901234567",
+              "profile_photo": null,
+              "role": "customer",
+              "address": null,
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          }
+        },
+        "error_response": {
+          "status": 400,
+          "data": {
+            "password": ["Passwords don't match"],
+            "phone_number": ["User with this phone number already exists."]
+          }
+        }
+      },
+      "login": {
+        "endpoint": "POST /api/v1/accounts/login/",
+        "description": "Tizimga kirish",
+        "access": "Public",
+        "request": {
+          "phone_number": "+998901234567",
+          "password": "mypassword123"
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+            "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+            "user": {
+              "id": 1,
+              "full_name": "Ozodbek Karimov",
+              "phone_number": "+998901234567",
+              "profile_photo": null,
+              "role": "customer",
+              "address": null,
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          }
+        },
+        "error_response": {
+          "status": 400,
+          "data": {
+            "non_field_errors": ["Invalid credentials"]
+          }
+        }
+      },
+      "token_refresh": {
+        "endpoint": "POST /api/v1/accounts/token/refresh/",
+        "description": "Access token yangilash",
+        "access": "Public",
+        "request": {
+          "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+          }
+        }
+      },
+      "me": {
+        "endpoint": "GET /api/v1/accounts/me/",
+        "description": "Foydalanuvchi profil ma'lumotlari",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "customer_response": {
+          "status": 200,
+          "data": {
+            "id": 1,
+            "full_name": "Ozodbek Karimov",
+            "phone_number": "+998901234567",
+            "profile_photo": null,
+            "role": "customer",
+            "address": null,
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        },
+        "seller_response": {
+          "status": 200,
+          "data": {
+            "id": 2,
+            "full_name": "Seller User",
+            "phone_number": "+998901234568",
+            "profile_photo": "/media/profiles/seller.jpg",
+            "role": "seller",
+            "address": {
+              "name": "Toshkent, Chilonzor",
+              "lat": 41.311081,
+              "long": 69.240562
+            },
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        },
+        "admin_response": {
+          "status": 200,
+          "data": {
+            "id": 3,
+            "full_name": "Admin User",
+            "phone_number": "+998901234569",
+            "profile_photo": null,
+            "role": "admin",
+            "address": null,
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        },
+        "super_admin_response": {
+          "status": 200,
+          "data": {
+            "id": 4,
+            "full_name": "Super Admin",
+            "phone_number": "+998901234570",
+            "profile_photo": null,
+            "role": "super_admin",
+            "address": null,
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "edit": {
+        "endpoint": "PUT /api/v1/accounts/edit/",
+        "description": "Profil ma'lumotlarini tahrirlash",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "request": {
+          "full_name": "Yangi Ism Familiya",
+          "phone_number": "+998901234567",
+          "address": 1
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "id": 1,
+            "full_name": "Yangi Ism Familiya",
+            "phone_number": "+998901234567",
+            "profile_photo": null,
+            "role": "customer",
+            "address": {
+              "name": "Toshkent, Chilonzor",
+              "lat": 41.311081,
+              "long": 69.240562
+            },
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "seller_registration": {
+        "endpoint": "POST /api/v1/accounts/seller/registration/",
+        "description": "Sotuvchi bo'lish uchun ariza berish",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "request": {
+          "full_name": "Ozodbek Karimov",
+          "project_name": "Mening Do'konim",
+          "category": 1,
+          "phone_number": "+998901234567",
+          "address": {
+            "name": "Toshkent, Chilonzor tumani",
+            "lat": 41.311081,
+            "long": 69.240562
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "id": 1,
+            "full_name": "Ozodbek Karimov",
+            "project_name": "Mening Do'konim",
+            "category_id": 1,
+            "phone_number": "+998901234567",
+            "address": "Toshkent, Chilonzor tumani",
+            "status": "pending",
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "admin_users": {
+        "endpoint": "GET /api/v1/accounts/admin/users/",
+        "description": "Barcha foydalanuvchilar ro'yxati (Admin/Super Admin)",
+        "access": "Admin, Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "admin_response": {
+          "status": 200,
+          "data": [
+            {
+              "id": 1,
+              "full_name": "Customer User",
+              "phone_number": "+998901234567",
+              "role": "customer",
+              "is_verified": false,
+              "created_at": "2025-01-15T10:30:00Z"
+            },
+            {
+              "id": 2,
+              "full_name": "Seller User",
+              "phone_number": "+998901234568",
+              "role": "seller",
+              "is_verified": true,
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          ]
+        },
+        "super_admin_response": {
+          "status": 200,
+          "data": [
+            {
+              "id": 1,
+              "full_name": "Customer User",
+              "phone_number": "+998901234567",
+              "role": "customer",
+              "is_verified": false,
+              "created_at": "2025-01-15T10:30:00Z"
+            },
+            {
+              "id": 2,
+              "full_name": "Admin User",
+              "phone_number": "+998901234569",
+              "role": "admin",
+              "is_verified": true,
+              "created_at": "2025-01-15T10:30:00Z"
+            },
+            {
+              "id": 3,
+              "full_name": "Super Admin",
+              "phone_number": "+998901234570",
+              "role": "super_admin",
+              "is_verified": true,
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          ]
+        },
+        "customer_error": {
+          "status": 403,
+          "data": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      },
+      "seller_registrations": {
+        "endpoint": "GET /api/v1/accounts/admin/seller-registrations/",
+        "description": "Sotuvchi arizalari ro'yxati",
+        "access": "Admin, Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "success_response": {
+          "status": 200,
+          "data": [
+            {
+              "id": 1,
+              "user": {
+                "id": 1,
+                "full_name": "Ozodbek Karimov",
+                "phone_number": "+998901234567",
+                "profile_photo": null,
+                "role": "customer",
+                "address": null,
+                "created_at": "2025-01-15T10:30:00Z"
+              },
+              "full_name": "Ozodbek Karimov",
+              "project_name": "Mening Do'konim",
+              "category": 1,
+              "phone_number": "+998901234567",
+              "address": "Toshkent, Chilonzor tumani",
+              "status": "pending",
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          ]
+        }
+      },
+      "approve_seller": {
+        "endpoint": "POST /api/v1/accounts/admin/seller-registrations/{id}/approve/",
+        "description": "Sotuvchi arizasini tasdiqlash",
+        "access": "Admin, Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "message": "Seller registration approved"
+          }
+        }
+      },
+      "create_admin": {
+        "endpoint": "POST /api/v1/accounts/super-admin/create-admin/",
+        "description": "Admin foydalanuvchi yaratish",
+        "access": "Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "request": {
+          "full_name": "Yangi Admin",
+          "phone_number": "+998901234571",
+          "password": "adminpass123",
+          "password_confirm": "adminpass123"
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "message": "Admin user created successfully",
+            "user": {
+              "id": 5,
+              "full_name": "Yangi Admin",
+              "phone_number": "+998901234571",
+              "profile_photo": null,
+              "role": "admin",
+              "address": null,
+              "created_at": "2025-01-15T10:30:00Z"
+            }
+          }
+        },
+        "admin_error": {
+          "status": 403,
+          "data": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    "store": {
+      "categories": {
+        "endpoint": "GET /api/v1/store/category/",
+        "description": "Asosiy kategoriyalar ro'yxati",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 7,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "Elektronika / Электроника",
+                "icon": "/media/icons/electronics.png",
+                "product_count": "1,234"
+              },
+              {
+                "id": 2,
+                "name": "Kiyim-kechak / Одежда",
+                "icon": "/media/icons/clothing.png",
+                "product_count": "856"
+              }
+            ]
+          }
+        }
+      },
+      "categories_with_children": {
+        "endpoint": "GET /api/v1/store/categories-with-childs/",
+        "description": "Kategoriyalar va ularning sub-kategoriyalari",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 7,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "Elektronika / Электроника",
+                "icon": "/media/icons/electronics.png",
+                "children": [
+                  {
+                    "id": 8,
+                    "name": "Telefonlar / Телефоны",
+                    "icon": null,
+                    "product_count": "456"
+                  },
+                  {
+                    "id": 9,
+                    "name": "Noutbuklar / Ноутбуки",
+                    "icon": null,
+                    "product_count": "234"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "create_ad": {
+        "endpoint": "POST /api/v1/store/ads/",
+        "description": "Yangi e'lon yaratish",
+        "access": "Seller",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "seller_request": {
+          "name_uz": "iPhone 15 Pro Max",
+          "name_ru": "iPhone 15 Pro Max",
+          "category": 8,
+          "description_uz": "Yangi iPhone 15 Pro Max, 256GB, Natural Titanium rang",
+          "description_ru": "Новый iPhone 15 Pro Max, 256GB, цвет Natural Titanium",
+          "price": 15000000,
+          "photos": ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"]
+        },
+        "seller_success_response": {
+          "status": 201,
+          "data": {
+            "id": 1,
+            "name": "iPhone 15 Pro Max",
+            "slug": "iphone-15-pro-max",
+            "description": "Yangi iPhone 15 Pro Max, 256GB, Natural Titanium rang",
+            "category": 8,
+            "price": 15000000,
+            "photos": ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"],
+            "published_at": "2025-01-15T10:30:00Z",
+            "status": "pending",
+            "view_count": 0,
+            "updated_time": "2025-01-15T10:30:00Z"
+          }
+        },
+        "customer_error": {
+          "status": 403,
+          "data": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      },
+      "ad_detail": {
+        "endpoint": "GET /api/v1/store/ads/{slug}/",
+        "description": "E'lon batafsil ma'lumotlari",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "id": 1,
+            "name": "iPhone 15 Pro Max",
+            "slug": "iphone-15-pro-max",
+            "description": "Yangi iPhone 15 Pro Max, 256GB, Natural Titanium rang",
+            "price": 15000000,
+            "photos": ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"],
+            "published_at": "2025-01-15T10:30:00Z",
+            "address": "Toshkent, Chilonzor",
+            "seller": {
+              "id": 2,
+              "full_name": "Seller User",
+              "phone_number": "+998901234568",
+              "profile_photo": "/media/profiles/seller.jpg"
+            },
+            "category": {
+              "id": 8,
+              "name": "Telefonlar / Телефоны"
+            },
+            "is_liked": false,
+            "view_count": 1,
+            "updated_time": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "ads_list": {
+        "endpoint": "GET /api/v1/store/list/ads/",
+        "description": "E'lonlar ro'yxati",
+        "access": "Public",
+        "query_params": {
+          "category_ids": "1,8",
+          "price__gte": "1000000",
+          "price__lte": "20000000",
+          "region_id": "1",
+          "search": "iPhone"
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 156,
+            "next": "http://localhost:8000/api/v1/store/list/ads/?page=2",
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "iPhone 15 Pro Max",
+                "slug": "iphone-15-pro-max",
+                "price": 15000000,
+                "photo": "https://example.com/photo1.jpg",
+                "published_at": "2025-01-15T10:30:00Z",
+                "address": "Toshkent, Chilonzor",
+                "seller": {
+                  "id": 2,
+                  "full_name": "Seller User",
+                  "phone_number": "+998901234568",
+                  "profile_photo": "/media/profiles/seller.jpg"
+                },
+                "is_liked": false,
+                "updated_time": "2025-01-15T10:30:00Z"
+              }
+            ]
+          }
+        }
+      },
+      "my_ads": {
+        "endpoint": "GET /api/v1/store/my-ads/",
+        "description": "Mening e'lonlarim",
+        "access": "Seller",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "seller_response": {
+          "status": 200,
+          "data": {
+            "count": 5,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "iPhone 15 Pro Max",
+                "slug": "iphone-15-pro-max",
+                "price": 15000000,
+                "photo": "https://example.com/photo1.jpg",
+                "published_at": "2025-01-15T10:30:00Z",
+                "address": "Toshkent, Chilonzor",
+                "status": "active",
+                "view_count": 45,
+                "is_liked": false,
+                "updated_time": "2025-01-15T10:30:00Z"
+              }
+            ]
+          }
+        },
+        "customer_error": {
+          "status": 403,
+          "data": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      },
+      "my_ad_detail": {
+        "endpoint": "GET /api/v1/store/my-ads/{id}/",
+        "description": "Mening e'lonim batafsil",
+        "access": "Seller (owner), Admin, Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "seller_response": {
+          "status": 200,
+          "data": {
+            "id": 1,
+            "name": "iPhone 15 Pro Max",
+            "slug": "iphone-15-pro-max",
+            "description": "Yangi iPhone 15 Pro Max, 256GB, Natural Titanium rang",
+            "category": 8,
+            "price": 15000000,
+            "photos": ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"],
+            "published_at": "2025-01-15T10:30:00Z",
+            "status": "active",
+            "view_count": 45,
+            "updated_time": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "update_ad": {
+        "endpoint": "PUT /api/v1/store/my-ads/{id}/",
+        "description": "E'lonni tahrirlash",
+        "access": "Seller (owner), Admin, Super Admin",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "seller_request": {
+          "name": "iPhone 15 Pro Max - Yangilangan",
+          "category": 8,
+          "description": "Yangilangan tavsif",
+          "price": 14500000,
+          "new_photos": ["https://example.com/new_photo.jpg"]
+        },
+        "seller_success_response": {
+          "status": 200,
+          "data": {
+            "id": 1,
+            "name": "iPhone 15 Pro Max - Yangilangan",
+            "slug": "iphone-15-pro-max",
+            "description": "Yangilangan tavsif",
+            "category": 8,
+            "price": 14500000,
+            "photos": [
+              "https://example.com/photo1.jpg",
+              "https://example.com/photo2.jpg",
+              "https://example.com/new_photo.jpg"
+            ],
+            "published_at": "2025-01-15T10:30:00Z",
+            "status": "active",
+            "view_count": 45,
+            "updated_time": "2025-01-15T11:30:00Z"
+          }
+        }
+      },
+      "favourite_create": {
+        "endpoint": "POST /api/v1/store/favourite-product-create/",
+        "description": "Sevimli mahsulot qo'shish (authenticated user)",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "request": {
+          "product": 1
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "id": 1,
+            "product": 1,
+            "device_id": null,
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "favourite_create_by_id": {
+        "endpoint": "POST /api/v1/store/favourite-product-create-by-id/",
+        "description": "Sevimli mahsulot qo'shish (device ID orqali)",
+        "access": "Public",
+        "request": {
+          "device_id": "device_12345",
+          "product": 1
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "id": 2,
+            "product": 1,
+            "device_id": "device_12345",
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "my_favourites": {
+        "endpoint": "GET /api/v1/store/my-favourite-product/",
+        "description": "Mening sevimli mahsulotlarim",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 3,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "iPhone 15 Pro Max",
+                "slug": "iphone-15-pro-max",
+                "description": "Yangi iPhone 15 Pro Max",
+                "price": 15000000,
+                "published_at": "2025-01-15T10:30:00Z",
+                "address": "Toshkent, Chilonzor",
+                "seller": "Seller User",
+                "photo": "https://example.com/photo1.jpg",
+                "is_liked": true,
+                "updated_time": "2025-01-15T10:30:00Z"
+              }
+            ]
+          }
+        }
+      },
+      "my_search_create": {
+        "endpoint": "POST /api/v1/store/my-search/",
+        "description": "Qidiruvni saqlash",
+        "access": "Authenticated",
+        "headers": {
+          "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        },
+        "request": {
+          "category": 8,
+          "search_query": "iPhone 15",
+          "price_min": 10000000,
+          "price_max": 20000000,
+          "region_id": 1
+        },
+        "success_response": {
+          "status": 201,
+          "data": {
+            "id": 1,
+            "category": 8,
+            "search_query": "iPhone 15",
+            "price_min": 10000000,
+            "price_max": 20000000,
+            "region_id": 1,
+            "created_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "search_category_product": {
+        "endpoint": "GET /api/v1/store/search/category-product/",
+        "description": "Kategoriya va mahsulot qidirish",
+        "access": "Public",
+        "query_params": {
+          "q": "telefon"
+        },
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 7,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 8,
+                "name": "Telefonlar / Телефоны",
+                "type": "category",
+                "icon": "/media/icons/phones.png"
+              },
+              {
+                "id": 1,
+                "name": "iPhone 15 Pro Max",
+                "type": "product",
+                "icon": "/media/icons/phones.png"
+              }
+            ]
+          }
+        }
+      },
+      "search_populars": {
+        "endpoint": "GET /api/v1/store/search/populars/",
+        "description": "Mashhur qidiruv so'zlari",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "count": 5,
+            "next": null,
+            "previous": null,
+            "results": [
+              {
+                "id": 1,
+                "name": "iPhone / Айфон",
+                "icon": "/media/search_icons/iphone.png",
+                "search_count": 15234
+              },
+              {
+                "id": 2,
+                "name": "Samsung Galaxy / Самсунг Галакси",
+                "icon": "/media/search_icons/samsung.png",
+                "search_count": 12456
+              }
+            ]
+          }
+        }
+      }
+    },
+    "common": {
+      "regions": {
+        "endpoint": "GET /api/v1/common/regions-with-districts/",
+        "description": "Viloyatlar va tumanlar",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": [
+            {
+              "id": 1,
+              "name": "Toshkent shahar / г. Ташкент",
+              "districts": [
+                {
+                  "id": 1,
+                  "name": "Chilonzor tumani / Чиланзарский район"
+                },
+                {
+                  "id": 2,
+                  "name": "Mirobod tumani / Мирабадский район"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "pages": {
+        "endpoint": "GET /api/v1/common/pages/",
+        "description": "Statik sahifalar ro'yxati",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": [
+            {
+              "slug": "about-us",
+              "title": "Biz haqimizda / О нас"
+            },
+            {
+              "slug": "privacy-policy",
+              "title": "Maxfiylik siyosati / Политика конфиденциальности"
+            }
+          ]
+        }
+      },
+      "page_detail": {
+        "endpoint": "GET /api/v1/common/pages/{slug}/",
+        "description": "Statik sahifa batafsil",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "slug": "about-us",
+            "title": "Biz haqimizda / О нас",
+            "content": "77.uz - O'zbekistondagi eng yirik onlayn bozor...",
+            "created_at": "2025-01-15T10:30:00Z",
+            "updated_at": "2025-01-15T10:30:00Z"
+          }
+        }
+      },
+      "setting": {
+        "endpoint": "GET /api/v1/common/setting/",
+        "description": "Ilova sozlamalari",
+        "access": "Public",
+        "success_response": {
+          "status": 200,
+          "data": {
+            "phone": "+998712345678",
+            "support_email": "support@77.uz",
+            "working_hours": "Dushanba-Yakshanba 9:00-21:00 / Пн-Вс 9:00-21:00",
+            "app_version": "1.0.0",
+            "maintenance_mode": false
+          }
+        }
+      }
+    }
+  }
+}

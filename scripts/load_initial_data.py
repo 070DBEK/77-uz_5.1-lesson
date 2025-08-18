@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Initial data yuklash uchun Python script - to'g'rilangan versiya
+Initial data yuklash uchun Python script - yangilangan versiya
 """
 import os
 import sys
@@ -72,7 +72,7 @@ def load_initial_data():
             if created:
                 print(f"✅ Created district: {district_name}")
 
-    # 3. Categories
+    # 3. Categories (MUHIM!)
     categories_data = [
         'Elektronika / Электроника',
         'Kiyim-kechak / Одежда',
@@ -83,6 +83,7 @@ def load_initial_data():
         'Xizmatlar / Услуги',
     ]
 
+    created_categories = []
     for category_name in categories_data:
         category, created = Category.objects.get_or_create(
             name=category_name,
@@ -90,6 +91,7 @@ def load_initial_data():
         )
         if created:
             print(f"✅ Created category: {category_name}")
+        created_categories.append(category)
 
     # 4. Subcategories for Electronics
     electronics = Category.objects.filter(name__contains='Elektronika').first()
@@ -179,6 +181,12 @@ def load_initial_data():
     print(f"   - Categories: {Category.objects.count()}")
     print(f"   - Static Pages: {StaticPage.objects.count()}")
     print(f"   - Search Terms: {PopularSearchTerm.objects.count()}")
+
+    # Show available category IDs
+    print(f"\n📂 Available Categories:")
+    categories = Category.objects.filter(is_active=True)
+    for cat in categories:
+        print(f"   ID: {cat.id} - {cat.name}")
 
 
 if __name__ == '__main__':
