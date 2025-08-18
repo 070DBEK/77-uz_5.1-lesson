@@ -78,10 +78,11 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=User.PUBLIC_ROLE_CHOICES, default='customer')
 
     class Meta:
         model = User
-        fields = ['full_name', 'phone_number', 'password', 'password_confirm']
+        fields = ['full_name', 'phone_number', 'password', 'password_confirm', 'role']
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 8}
         }
@@ -93,6 +94,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
+        # Custom manager'dan foydalanish
         user = User.objects.create_user(**validated_data)
         return user
 

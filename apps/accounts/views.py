@@ -4,8 +4,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 from django.contrib.auth import authenticate
+
 from .models import User, SellerRegistration
 from .permissions import IsSuperAdmin, IsAdmin, CanManageSellers
 from .serializers import (
@@ -34,11 +35,15 @@ class UserProfileEditView(generics.UpdateAPIView):
 
 # Admin endpoints
 class UserListView(generics.ListAPIView):
-    """Admin: List of all users"""
+    """Admin: Barcha foydalanuvchilar ro'yxati"""
     serializer_class = UserListSerializer
     permission_classes = [IsAdmin]
 
     def get_queryset(self):
+        # Swagger uchun fake view check
+        if getattr(self, 'swagger_fake_view', False):
+            return User.objects.none()
+
         if self.request.user.role == 'super_admin':
             return User.objects.all()
         else:  # admin
@@ -46,16 +51,23 @@ class UserListView(generics.ListAPIView):
 
 
 class SellerRegistrationListView(generics.ListAPIView):
-    """Admin: Seller Application List"""
+    """Admin: Sotuvchi arizalari ro'yxati"""
     queryset = SellerRegistration.objects.all()
     serializer_class = SellerRegistrationListSerializer
     permission_classes = [CanManageSellers]
 
 
+@extend_schema(
+    request=None,
+    responses={
+        200: OpenApiResponse(description='Seller registration approved'),
+        404: OpenApiResponse(description='Registration not found'),
+    }
+)
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def approve_seller_registration(request, registration_id):
-    """Admin: Confirm Seller Application"""
+    """Admin: Sotuvchi arizasini tasdiqlash"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
         registration.status = 'approved'
@@ -70,10 +82,17 @@ def approve_seller_registration(request, registration_id):
         return Response({'error': 'Registration not found'}, status=404)
 
 
+@extend_schema(
+    request=None,
+    responses={
+        200: OpenApiResponse(description='Seller registration rejected'),
+        404: OpenApiResponse(description='Registration not found'),
+    }
+)
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def reject_seller_registration(request, registration_id):
-    """Admin: Reject Seller Application"""
+    """Admin: Sotuvchi arizasini rad etish"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
         registration.status = 'rejected'
@@ -84,10 +103,17 @@ def reject_seller_registration(request, registration_id):
         return Response({'error': 'Registration not found'}, status=404)
 
 
+@extend_schema(
+    request=UserRegisterSerializer,
+    responses={
+        201: OpenApiResponse(response=LoginResponseSerializer, description='Admin user created'),
+        400: OpenApiResponse(description='Invalid data'),
+    }
+)
 @api_view(['POST'])
 @permission_classes([IsSuperAdmin])
 def create_admin_user(request):
-    """Super Admin: Create Admin User"""
+    """Super Admin: Admin foydalanuvchi yaratish"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()

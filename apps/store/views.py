@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, F
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
 from .models import Category, Ad, AdPhoto, FavouriteProduct, MySearch, PopularSearchTerm
 from .serializers import *
@@ -77,6 +77,9 @@ class MyAdListView(generics.ListAPIView):
     filterset_fields = ['status']
 
     def get_queryset(self):
+        # Swagger uchun fake view check
+        if getattr(self, 'swagger_fake_view', False):
+            return Ad.objects.none()
         return Ad.objects.filter(seller=self.request.user)
 
 
@@ -108,6 +111,15 @@ class FavouriteProductByIdCreateView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(name='device_id', type=str, location=OpenApiParameter.QUERY)
+    ],
+    responses={
+        204: OpenApiResponse(description='Favourite product deleted'),
+        404: OpenApiResponse(description='Favourite not found'),
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def favourite_product_delete(request, id):
@@ -119,6 +131,15 @@ def favourite_product_delete(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(name='device_id', type=str, location=OpenApiParameter.QUERY)
+    ],
+    responses={
+        204: OpenApiResponse(description='Favourite product deleted'),
+        404: OpenApiResponse(description='Favourite not found'),
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([AllowAny])
 def favourite_product_by_id_delete(request, id):
@@ -141,6 +162,10 @@ class MyFavouriteProductListView(generics.ListAPIView):
     filterset_fields = ['category']
 
     def get_queryset(self):
+        # Swagger uchun fake view check
+        if getattr(self, 'swagger_fake_view', False):
+            return Ad.objects.none()
+
         favourites = FavouriteProduct.objects.filter(user=self.request.user)
         return Ad.objects.filter(id__in=favourites.values_list('product_id', flat=True))
 
@@ -173,9 +198,18 @@ class MySearchListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Swagger uchun fake view check
+        if getattr(self, 'swagger_fake_view', False):
+            return MySearch.objects.none()
         return MySearch.objects.filter(user=self.request.user)
 
 
+@extend_schema(
+    responses={
+        204: OpenApiResponse(description='Search deleted'),
+        404: OpenApiResponse(description='Search not found'),
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def my_search_delete(request, id):
@@ -192,6 +226,12 @@ class ProductImageCreateView(generics.CreateAPIView):
     permission_classes = [IsSeller]
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(response=AdDetailSerializer, description='Product details'),
+        404: OpenApiResponse(description='Product not found'),
+    }
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def product_download(request, slug):
@@ -288,6 +328,12 @@ class SearchCompleteView(generics.ListAPIView):
         })
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(description='Search count increased'),
+        400: OpenApiResponse(description='Invalid request'),
+    }
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_count_increase(request, id):

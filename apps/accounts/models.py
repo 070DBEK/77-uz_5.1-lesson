@@ -1,9 +1,41 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
 
 
+class UserManager(BaseUserManager):
+    """Custom user manager for phone number authentication"""
+
+    def create_user(self, phone_number, password=None, **extra_fields):
+        if not phone_number:
+            raise ValueError('Phone number is required')
+
+        user = self.model(phone_number=phone_number, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, phone_number, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', 'super_admin')
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(phone_number, password, **extra_fields)
+
+
 class User(AbstractUser):
+    # Public role choices (faqat customer va seller)
+    PUBLIC_ROLE_CHOICES = [
+        ('customer', 'Customer'),
+        ('seller', 'Seller'),
+    ]
+
+    # Internal role choices (barcha rollar)
     ROLE_CHOICES = [
         ('super_admin', 'Super Admin'),
         ('admin', 'Admin'),
@@ -18,13 +50,15 @@ class User(AbstractUser):
     phone_number = models.CharField(
         max_length=15,
         unique=True,
-        validators=[RegexValidator(regex=r'^\+\d{1,15}$', message='Phone number must be in format: +9981234567  ')]
+        validators=[RegexValidator(regex=r'^\+\d{1,15}$', message='Phone number must be in format: +999999999')]
     )
     profile_photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()  # Custom manager qo'shish
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -50,6 +84,7 @@ class User(AbstractUser):
         return self.role == 'seller'
 
     def save(self, *args, **kwargs):
+        # Super admin avtomatik staff va superuser bo'ladi
         if self.role == 'super_admin':
             self.is_staff = True
             self.is_superuser = True

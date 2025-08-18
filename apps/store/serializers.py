@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Category, Ad, AdPhoto, FavouriteProduct, MySearch, PopularSearchTerm
+from drf_spectacular.utils import extend_schema_field
 
 User = get_user_model()
 
@@ -12,8 +13,8 @@ class CategoryListSerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'icon', 'product_count']
 
-    def get_product_count(self, obj):
-        # YAML da string format bor, lekin bizda integer
+    @extend_schema_field(serializers.CharField)
+    def get_product_count(self, obj) -> str:
         count = obj.product_count
         return f"{count:,}" if count > 999 else str(count)
 
@@ -25,6 +26,7 @@ class CategoryWithChildrenSerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'icon', 'children']
 
+    @extend_schema_field(CategoryListSerializer(many=True))
     def get_children(self, obj):
         children = obj.children.filter(is_active=True)
         return CategoryListSerializer(children, many=True).data
@@ -48,24 +50,28 @@ class AdListSerializer(serializers.ModelSerializer):
     address = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     updated_time = serializers.DateTimeField(source='updated_at', read_only=True)
-    name = serializers.SerializerMethodField()  # YAML da faqat 'name' bor
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = Ad
         fields = ['id', 'name', 'slug', 'price', 'photo', 'published_at', 'address', 'seller', 'is_liked',
                   'updated_time']
 
-    def get_name(self, obj):
+    @extend_schema_field(serializers.CharField)
+    def get_name(self, obj) -> str:
         return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
 
-    def get_photo(self, obj):
+    @extend_schema_field(serializers.URLField)
+    def get_photo(self, obj) -> str:
         return obj.main_photo
 
-    def get_address(self, obj):
+    @extend_schema_field(serializers.CharField)
+    def get_address(self, obj) -> str:
         address = obj.seller.addresses.filter(is_default=True).first()
         return address.name if address else ""
 
-    def get_is_liked(self, obj):
+    @extend_schema_field(serializers.BooleanField)
+    def get_is_liked(self, obj) -> bool:
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.favourites.filter(user=request.user).exists()
@@ -87,20 +93,25 @@ class AdDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'description', 'price', 'photos', 'published_at', 'address', 'seller',
                   'category', 'is_liked', 'view_count', 'updated_time']
 
-    def get_name(self, obj):
+    @extend_schema_field(serializers.CharField)
+    def get_name(self, obj) -> str:
         return obj.name_uz or obj.name_ru or f'Ad #{obj.id}'
 
-    def get_description(self, obj):
+    @extend_schema_field(serializers.CharField)
+    def get_description(self, obj) -> str:
         return obj.description_uz or obj.description_ru or ""
 
-    def get_photos(self, obj):
+    @extend_schema_field(serializers.ListField(child=serializers.URLField()))
+    def get_photos(self, obj) -> list:
         return [photo.image.url for photo in obj.photos.all()]
 
-    def get_address(self, obj):
+    @extend_schema_field(serializers.CharField)
+    def get_address(self, obj) -> str:
         address = obj.seller.addresses.filter(is_default=True).first()
         return address.name if address else ""
 
-    def get_is_liked(self, obj):
+    @extend_schema_field(serializers.BooleanField)
+    def get_is_liked(self, obj) -> bool:
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.favourites.filter(user=request.user).exists()
