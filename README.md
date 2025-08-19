@@ -1,154 +1,299 @@
-# KirishUshbu - Online Marketplace Platform
+# 🛒 77.uz - E-commerce Platform Backend
 
-🌐 **Choose your language / Tilni tanlang / Выберите язык:**
+**77.uz** - O'zbekistondagi eng yirik onlayn bozor platformasi uchun Django REST API backend tizimi.
 
-[![Uzbek](https://img.shields.io/badge/🇺🇿_O'zbek-README_uz.md-blue)](README_uz.md)
-[![Russian](https://img.shields.io/badge/🇷🇺_Русский-README_ru.md-red)](README_ru.md)
+![Django](https://img.shields.io/badge/Django-4.2.7-green.svg)
+![DRF](https://img.shields.io/badge/DRF-3.14.0-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)
+![License](https://img.shields.io/badge/License-MIT-red.svg)
 
----
+## 📋 Mundarija
 
-## Quick Start / Tezkor boshlash / Быстрый старт
+- [Loyiha haqida](#-loyiha-haqida)
+- [Texnologiyalar](#-texnologiyalar)
+- [O'rnatish](#-ornatish)
+- [API Hujjatlari](#-api-hujjatlari)
+- [Loyiha strukturasi](#-loyiha-strukturasi)
+- [Foydalanuvchi rollari](#-foydalanuvchi-rollari)
+- [Ma'lumotlar bazasi](#-malumotlar-bazasi)
+- [Deployment](#-deployment)
+- [Hissa qo'shish](#-hissa-qoshish)
+
+## 🎯 Loyiha haqida
+
+77.uz platformasi - bu O'zbekiston bozorida faol ishlaydigan e-commerce tizimi bo'lib, quyidagi imkoniyatlarni taqdim etadi:
+
+- 🔐 **Autentifikatsiya** - JWT token asosida xavfsiz kirish tizimi
+- 👥 **Foydalanuvchi boshqaruvi** - Customer, Seller, Admin, Super Admin rollari
+- 🛍️ **Mahsulot boshqaruvi** - E'lonlar yaratish, tahrirlash va boshqarish
+- 📂 **Kategoriyalar** - Ierarxik kategoriya tizimi
+- ❤️ **Sevimlilar** - Mahsulotlarni sevimlilar ro'yxatiga qo'shish
+- 🔍 **Qidiruv** - Kuchli qidiruv va filtrlash tizimi
+- 🌍 **Ko'p tillilik** - O'zbek va Rus tillari qo'llab-quvvatlanadi
+
+## 🚀 Texnologiyalar
+
+### Backend
+- **Django 4.2.7** - Web framework
+- **Django REST Framework 3.14.0** - API development
+- **JWT Authentication** - Xavfsiz autentifikatsiya
+- **PostgreSQL** - Production database
+- **SQLite** - Development database
+
+### Qo'shimcha kutubxonalar
+- **django-cors-headers** - CORS boshqaruvi
+- **django-filter** - API filtrlash
+- **drf-spectacular** - API hujjatlari
+- **Pillow** - Rasm bilan ishlash
+- **python-decouple** - Environment variables
+
+## 📦 O'rnatish
+
+### 1. Repository'ni klonlash
 
 \`\`\`bash
-# Clone repository
-git clone <repository-url>
-cd kirish-ushbu-backend
+git clone https://github.com/your-username/77uz-backend.git
+cd 77uz-backend
+\`\`\`
 
-# Setup environment
+### 2. Virtual environment yaratish
+
+\`\`\`bash
+# Windows
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
+venv\\Scripts\\activate
 
-# Install dependencies
-pip install -r requirements/development.txt
-
-# Setup database and run
-python scripts/quick_fix.py
-python manage.py runserver
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
 \`\`\`
 
-## Xususiyatlar
+### 3. Dependencies o'rnatish
 
-- **Uch xil rol**: Super Admin, Admin, Sotuvchi
-- **To'liq API**: REST API with Swagger documentation
-- **Xavfsizlik**: JWT authentication, CORS, permission controls
-- **Admin Panel**: Django admin interface
-- **Test Coverage**: Comprehensive test suite
-
-## 🌍 Language Support / Til qo'llab-quvvatlash / Языковая поддержка
-
-This system supports two languages:
-- **Uzbek** (Latin script) - O'zbek tili (lotin yozuvi)
-- **Russian** - Русский язык
-
-## Texnologiyalar
-
-- **Backend**: Django 4.2, Django REST Framework
-- **Database**: PostgreSQL
-- **Authentication**: JWT (Simple JWT)
-- **Documentation**: drf-spectacular (Swagger)
-- **Testing**: pytest-django
-
-## 📚 Documentation / Hujjatlar / Документация
-
-- [🇺🇿 O'zbek tilida to'liq hujjat](README_uz.md)
-- [🇷🇺 Полная документация на русском](README_ru.md)
-
-## O'rnatish
-
-1. **Repository'ni clone qiling**:
 \`\`\`bash
-git clone <repository-url>
-cd kirish-ushbu-backend
+pip install -r requirements.txt
 \`\`\`
 
-2. **Virtual environment yarating**:
-\`\`\`bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# yoki
-venv\Scripts\activate  # Windows
+### 4. Environment variables sozlash
+
+\`.env\` faylini yarating va quyidagi ma'lumotlarni kiriting:
+
+\`\`\`env
+# Django
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database (PostgreSQL uchun)
+DB_NAME=kirish_ushbu
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+DB_HOST=localhost
+DB_PORT=5432
+
+# JWT
+JWT_SECRET_KEY=your-jwt-secret-key-here
+
+# Email
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+EMAIL_USE_TLS=True
 \`\`\`
 
-3. **Dependencies o'rnating**:
-\`\`\`bash
-pip install -r requirements/development.txt
-\`\`\`
+### 5. Ma'lumotlar bazasini sozlash
 
-4. **Environment variables sozlang**:
 \`\`\`bash
-cp .env.example .env
-# .env faylini tahrirlang
-\`\`\`
-
-5. **Database yarating va migrate qiling**:
-\`\`\`bash
+# Migratsiyalar yaratish
 python manage.py makemigrations
+
+# Migratsiyalarni qo'llash
 python manage.py migrate
-\`\`\`
 
-6. **Initial data yuklang**:
-\`\`\`bash
-python manage.py shell < scripts/initial_data.sql
-\`\`\`
-
-7. **Superuser yarating**:
-\`\`\`bash
+# Superuser yaratish
 python manage.py createsuperuser
 \`\`\`
 
-8. **Serverni ishga tushiring**:
+### 6. Boshlang'ich ma'lumotlarni yuklash
+
+\`\`\`bash
+# Python script orqali
+python scripts/load_initial_data.py
+
+# Yoki SQL script orqali
+python manage.py dbshell < scripts/initial_data.sql
+\`\`\`
+
+### 7. Serverni ishga tushirish
+
 \`\`\`bash
 python manage.py runserver
 \`\`\`
 
-## 🚀 API Documentation
+Server \`http://127.0.0.1:8000\` manzilida ishga tushadi.
 
-- **Swagger UI**: http://localhost:8000/swagger/
-- **Admin Panel**: http://localhost:8000/default-admin-panel/
+## 📚 API Hujjatlari
 
-## API Endpoints
+### Swagger UI
+- **URL**: \`http://127.0.0.1:8000/swagger/\`
+- **Interaktiv API hujjatlari**
 
-### Accounts
-- `POST /api/v1/accounts/register/` - Ro'yxatdan o'tish
-- `POST /api/v1/accounts/login/` - Kirish
-- `GET /api/v1/accounts/me/` - Profil ma'lumotlari
-- `PUT /api/v1/accounts/edit/` - Profilni tahrirlash
+### ReDoc
+- **URL**: \`http://127.0.0.1:8000/redoc/\`
+- **Batafsil API hujjatlari**
 
-### Store
-- `GET /api/v1/store/category/` - Kategoriyalar ro'yxati
-- `POST /api/v1/store/ads/` - E'lon yaratish
-- `GET /api/v1/store/list/ads/` - E'lonlar ro'yxati
-- `GET /api/v1/store/my-ads/` - Mening e'lonlarim
+### Admin Panel
+- **URL**: \`http://127.0.0.1:8000/default-admin-panel/\`
+- **Ma'lumotlar bazasini boshqarish**
 
-### Common
-- `GET /api/v1/common/regions-with-districts/` - Viloyat va tumanlar
-- `GET /api/v1/common/pages/` - Statik sahifalar
-- `GET /api/v1/common/setting/` - Ilova sozlamalari
+## 🏗️ Loyiha strukturasi
 
-## Deployment
+\`\`\`
+77uz-backend/
+├── 📁 apps/                    # Django applications
+│   ├── 📁 accounts/            # Foydalanuvchi boshqaruvi
+│   │   ├── models.py           # User, Address, SellerRegistration
+│   │   ├── views.py            # API views
+│   │   ├── serializers.py      # DRF serializers
+│   │   ├── permissions.py      # Custom permissions
+│   │   └── urls.py             # URL routing
+│   ├── 📁 store/               # E-commerce logic
+│   │   ├── models.py           # Ad, Category, FavouriteProduct
+│   │   ├── views.py            # Store API views
+│   │   ├── serializers.py      # Store serializers
+│   │   ├── filters.py          # Django filters
+│   │   └── urls.py             # Store URLs
+│   └── 📁 common/              # Umumiy ma'lumotlar
+│       ├── models.py           # Region, District, StaticPage
+│       ├── views.py            # Common views
+│       └── serializers.py      # Common serializers
+├── 📁 config/                  # Django sozlamalari
+│   ├── 📁 settings/            # Environment-specific settings
+│   │   ├── base.py             # Asosiy sozlamalar
+│   │   ├── development.py      # Development sozlamalari
+│   │   └── production.py       # Production sozlamalari
+│   ├── urls.py                 # Asosiy URL routing
+│   ├── wsgi.py                 # WSGI configuration
+│   └── asgi.py                 # ASGI configuration
+├── 📁 scripts/                 # Utility scripts
+│   ├── load_initial_data.py    # Boshlang'ich ma'lumotlar
+│   ├── initial_data.sql        # SQL ma'lumotlar
+│   └── fix_initial_data.sql    # Ma'lumotlarni tuzatish
+├── 📄 requirements.txt         # Python dependencies
+├── 📄 manage.py               # Django management
+├── 📄 .env                    # Environment variables
+├── 📄 .gitignore              # Git ignore rules
+└── 📄 README.md               # Loyiha hujjatlari
+\`\`\`
 
-Production uchun:
-1. `DJANGO_SETTINGS_MODULE=config.settings.production` o'rnating
-2. Static fayllarni to'plang: `python manage.py collectstatic`
-3. Gunicorn yoki uWSGI ishlatib deploy qiling
+## 👥 Foydalanuvchi rollari
 
-## 📞 Support / Qo'llab-quvvatlash / Поддержка
+### 🔴 Super Admin
+- Barcha tizim huquqlari
+- Admin foydalanuvchilarni yaratish
+- Barcha ma'lumotlarga kirish
+
+### 🟠 Admin
+- Sotuvchilarni boshqarish
+- E'lonlarni tasdiqlash/rad etish
+- Foydalanuvchilarni boshqarish
+
+### 🟡 Seller
+- O'z e'lonlarini yaratish va boshqarish
+- Mahsulot rasmlarini yuklash
+- Statistikalarni ko'rish
+
+### 🟢 Customer
+- E'lonlarni ko'rish va qidirish
+- Sevimlilar ro'yxati
+- Seller bo'lish uchun ariza berish
+
+## 🗄️ Ma'lumotlar bazasi
+
+### Asosiy jadvallar
+
+- **users** - Foydalanuvchilar ma'lumotlari
+- **addresses** - Foydalanuvchi manzillari
+- **seller_registrations** - Seller bo'lish arizalari
+- **categories** - Mahsulot kategoriyalari
+- **ads** - E'lonlar
+- **ad_photos** - E'lon rasmlari
+- **favourite_products** - Sevimli mahsulotlar
+- **regions** - Viloyatlar
+- **districts** - Tumanlar
+- **static_pages** - Statik sahifalar
+
+## 🚀 Deployment
+
+### Production uchun sozlash
+
+1. **Environment variables**:
+\`\`\`env
+DEBUG=False
+ALLOWED_HOSTS=your-domain.com
+DB_NAME=production_db
+DB_USER=production_user
+DB_PASSWORD=strong_password
+\`\`\`
+
+2. **Static files**:
+\`\`\`bash
+python manage.py collectstatic
+\`\`\`
+
+3. **Database migration**:
+\`\`\`bash
+python manage.py migrate --settings=config.settings.production
+\`\`\`
+
+### Docker bilan ishga tushirish
+
+\`\`\`dockerfile
+# Dockerfile
+FROM python:3.9
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+\`\`\`
+
+\`\`\`bash
+# Docker build va run
+docker build -t 77uz-backend .
+docker run -p 8000:8000 77uz-backend
+\`\`\`
+
+## 🤝 Hissa qo'shish
+
+1. **Fork** qiling
+2. **Feature branch** yarating (\`git checkout -b feature/AmazingFeature\`)
+3. **Commit** qiling (\`git commit -m 'Add some AmazingFeature'\`)
+4. **Push** qiling (\`git push origin feature/AmazingFeature\`)
+5. **Pull Request** oching
+
+### Code Style
+
+- **PEP 8** standartlariga rioya qiling
+- **Black** formatter ishlatiladi
+- **Type hints** qo'shing
+- **Docstring**lar yozing
+
+## 📞 Aloqa
 
 - **Email**: info@uic.group
-- **Phone**: +998 71 234 56 78
+- **Telegram**: @your_username
+- **Website**: https://77.uz
 
-## Contributing
+## 📄 Litsenziya
 
-1. Fork qiling
-2. Feature branch yarating
-3. Testlar yozing
-4. Pull request yuboring
-
-## License
-
-MIT License
+Bu loyiha MIT litsenziyasi ostida tarqatiladi. Batafsil ma'lumot uchun [LICENSE](LICENSE) faylini ko'ring.
 
 ---
 
-**© 2025 KirishUshbu Platform. All rights reserved.**
+**77.uz Backend API** - O'zbekiston e-commerce platformasi 🇺🇿
+\`\`\`
+
+Bu README.md fayli loyihangiz uchun to'liq va professional ko'rinishga ega. Unda barcha kerakli ma'lumotlar, o'rnatish yo'riqnomalari va loyiha strukturasi batafsil yoritilgan.
+\`\`\`
