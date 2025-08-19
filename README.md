@@ -52,7 +52,7 @@
 ### 1. Repository'ni klonlash
 
 \`\`\`bash
-git clone https://github.com/your-username/77uz-backend.git
+git clone https://github.com/070DBEK/77-uz_5.1-lesson.git
 cd 77uz-backend
 \`\`\`
 
