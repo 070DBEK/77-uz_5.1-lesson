@@ -15,7 +15,7 @@ from .serializers import (
     TokenRefreshSerializer, TokenVerifySerializer, UserListSerializer,
     SellerRegistrationListSerializer
 )
-from .debug_views import debug_user_info, force_refresh_user  # Debug view'larni import qiling
+from .debug_views import debug_user_info, force_refresh_user
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -36,23 +36,20 @@ class UserProfileEditView(generics.UpdateAPIView):
 
 # Admin endpoints
 class UserListView(generics.ListAPIView):
-    """Admin: Barcha foydalanuvchilar ro'yxati"""
     serializer_class = UserListSerializer
     permission_classes = [IsAdmin]
 
     def get_queryset(self):
-        # Swagger uchun fake view check
         if getattr(self, 'swagger_fake_view', False):
             return User.objects.none()
 
         if self.request.user.role == 'super_admin':
             return User.objects.all()
-        else:  # admin
+        else:
             return User.objects.exclude(role='super_admin')
 
 
 class SellerRegistrationListView(generics.ListAPIView):
-    """Admin: Sotuvchi arizalari ro'yxati"""
     queryset = SellerRegistration.objects.all()
     serializer_class = SellerRegistrationListSerializer
     permission_classes = [CanManageSellers]
@@ -68,15 +65,12 @@ class SellerRegistrationListView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def approve_seller_registration(request, registration_id):
-    """Admin: Sotuvchi arizasini tasdiqlash"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
 
-        # Registration statusini o'zgartirish
         registration.status = 'approved'
         registration.save()
 
-        # User rolini seller qilish - MUHIM!
         user = registration.user
         user.role = 'seller'
         user.is_verified = True
@@ -109,19 +103,15 @@ def approve_seller_registration(request, registration_id):
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def reject_seller_registration(request, registration_id):
-    """Admin: Sotuvchi arizasini rad etish"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
-
-        # Registration statusini o'zgartirish
         registration.status = 'rejected'
         registration.save()
 
-        # User rolini customer qilish (agar boshqa role bo'lsa)
         user = registration.user
         if user.role != 'customer':
             user.role = 'customer'
-            user.is_verified = False  # Seller sifatida tasdiqlanmagan
+            user.is_verified = False
             user.save()
             user.refresh_from_db()
 
@@ -148,7 +138,6 @@ def reject_seller_registration(request, registration_id):
 @api_view(['POST'])
 @permission_classes([IsSuperAdmin])
 def create_admin_user(request):
-    """Super Admin: Admin foydalanuvchi yaratish"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
@@ -200,7 +189,7 @@ def register_view(request):
     """Register endpoint - Har doim customer sifatida ro'yxatdan o'tish"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()  # Har doim customer bo'ladi
+        user = serializer.save()
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -219,9 +208,8 @@ def register_view(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([CanApplyForSeller])  # Yangi permission ishlatish
+@permission_classes([CanApplyForSeller])
 def seller_registration_view(request):
-    """Customer'dan Seller bo'lish uchun ariza berish"""
     serializer = SellerRegistrationSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         registration = serializer.save()
@@ -282,16 +270,12 @@ def token_verify_view(request):
         from django.contrib.auth import get_user_model
 
         User = get_user_model()
-
-        # Token'ni verify qilish
         UntypedToken(token)
 
-        # Token'dan user_id olish
         from rest_framework_simplejwt.tokens import AccessToken
         access_token = AccessToken(token)
         user_id = access_token.payload.get('user_id')
 
-        # User mavjudligini tekshirish
         try:
             user = User.objects.get(id=user_id)
             return Response({
