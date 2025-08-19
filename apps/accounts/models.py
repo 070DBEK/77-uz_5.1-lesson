@@ -95,6 +95,9 @@ class User(AbstractUser):
             self.is_staff = False
             self.is_superuser = False
 
+        # Debug uchun print qo'shish
+        print(f"Saving user {self.phone_number}: role={self.role}, is_verified={self.is_verified}")
+
         super().save(*args, **kwargs)
 
 

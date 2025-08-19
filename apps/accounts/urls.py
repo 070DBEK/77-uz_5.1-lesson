@@ -13,6 +13,10 @@ urlpatterns = [
     path('edit/', views.UserProfileEditView.as_view(), name='user-profile-edit'),
     path('seller/registration/', views.seller_registration_view, name='seller-registration'),
 
+    # Debug endpoints
+    path('debug/user-info/', views.debug_user_info, name='debug-user-info'),
+    path('debug/refresh-user/', views.force_refresh_user, name='force-refresh-user'),
+
     # Admin endpoints
     path('admin/users/', views.UserListView.as_view(), name='admin-user-list'),
     path(
@@ -21,8 +25,8 @@ urlpatterns = [
         name='admin-seller-registrations'
     ),
     path(
-        'admin/seller-registrations/<int:registration_id>/approve/',
-        views.approve_seller_registration,
+        'admin/seller-registrations/<int:registration_id>/approve/'
+        , views.approve_seller_registration,
          name='approve-seller'
     ),
     path(

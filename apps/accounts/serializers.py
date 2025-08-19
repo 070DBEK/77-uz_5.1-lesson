@@ -121,8 +121,9 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only customers can apply to become sellers")
 
         # Avval ariza berganmi tekshirish
-        if SellerRegistration.objects.filter(user=user).exists():
-            raise serializers.ValidationError("You have already submitted a seller application")
+        if SellerRegistration.objects.filter(user=user, status__in=['pending', 'approved']).exists():
+            raise serializers.ValidationError(
+                "You have already submitted a seller application or you are already a seller")
 
         return attrs
 

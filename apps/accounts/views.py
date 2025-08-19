@@ -8,13 +8,14 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParamet
 from django.contrib.auth import authenticate
 
 from .models import User, SellerRegistration
-from .permissions import IsSuperAdmin, IsAdmin, CanManageSellers
+from .permissions import IsSuperAdmin, IsAdmin, CanManageSellers, CanApplyForSeller
 from .serializers import (
     UserProfileSerializer, UserProfileEditSerializer, UserLoginSerializer,
     UserRegisterSerializer, LoginResponseSerializer, SellerRegistrationSerializer,
     TokenRefreshSerializer, TokenVerifySerializer, UserListSerializer,
     SellerRegistrationListSerializer
 )
+from .debug_views import debug_user_info, force_refresh_user  # Debug view'larni import qiling
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -70,21 +71,32 @@ def approve_seller_registration(request, registration_id):
     """Admin: Sotuvchi arizasini tasdiqlash"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
+
+        # Registration statusini o'zgartirish
         registration.status = 'approved'
         registration.save()
 
-        # User rolini seller qilish
-        registration.user.role = 'seller'
-        registration.user.is_verified = True  # Seller sifatida tasdiqlangan
-        registration.user.save()
+        # User rolini seller qilish - MUHIM!
+        user = registration.user
+        user.role = 'seller'
+        user.is_verified = True
+        user.save()
+
+        # Refresh from database to confirm changes
+        user.refresh_from_db()
 
         return Response({
-            'message': 'Seller registration approved',
-            'user_id': registration.user.id,
-            'new_role': registration.user.role
+            'message': 'Seller registration approved successfully',
+            'user_id': user.id,
+            'old_role': 'customer',
+            'new_role': user.role,
+            'is_verified': user.is_verified,
+            'registration_status': registration.status
         })
     except SellerRegistration.DoesNotExist:
         return Response({'error': 'Registration not found'}, status=404)
+    except Exception as e:
+        return Response({'error': f'Error approving registration: {str(e)}'}, status=500)
 
 
 @extend_schema(
@@ -100,12 +112,30 @@ def reject_seller_registration(request, registration_id):
     """Admin: Sotuvchi arizasini rad etish"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
+
+        # Registration statusini o'zgartirish
         registration.status = 'rejected'
         registration.save()
 
-        return Response({'message': 'Seller registration rejected'})
+        # User rolini customer qilish (agar boshqa role bo'lsa)
+        user = registration.user
+        if user.role != 'customer':
+            user.role = 'customer'
+            user.is_verified = False  # Seller sifatida tasdiqlanmagan
+            user.save()
+            user.refresh_from_db()
+
+        return Response({
+            'message': 'Seller registration rejected',
+            'user_id': user.id,
+            'current_role': user.role,
+            'is_verified': user.is_verified,
+            'registration_status': registration.status
+        })
     except SellerRegistration.DoesNotExist:
         return Response({'error': 'Registration not found'}, status=404)
+    except Exception as e:
+        return Response({'error': f'Error rejecting registration: {str(e)}'}, status=500)
 
 
 @extend_schema(
@@ -189,7 +219,7 @@ def register_view(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([CanApplyForSeller])  # Yangi permission ishlatish
 def seller_registration_view(request):
     """Customer'dan Seller bo'lish uchun ariza berish"""
     serializer = SellerRegistrationSerializer(data=request.data, context={'request': request})
@@ -247,10 +277,59 @@ def token_verify_view(request):
         return Response({'error': 'Token required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        refresh = RefreshToken(token)
-        return Response({
-            'valid': True,
-            'user_id': refresh.payload.get('user_id')
-        })
-    except TokenError:
-        return Response({'valid': False}, status=status.HTTP_400_BAD_REQUEST)
+        from rest_framework_simplejwt.tokens import UntypedToken
+        from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        # Token'ni verify qilish
+        UntypedToken(token)
+
+        # Token'dan user_id olish
+        from rest_framework_simplejwt.tokens import AccessToken
+        access_token = AccessToken(token)
+        user_id = access_token.payload.get('user_id')
+
+        # User mavjudligini tekshirish
+        try:
+            user = User.objects.get(id=user_id)
+            return Response({
+                'valid': True,
+                'user_id': user_id,
+                'user_role': user.role
+            })
+        except User.DoesNotExist:
+            return Response({'valid': False, 'error': 'User not found'}, status=400)
+
+    except (InvalidToken, TokenError):
+        return Response({'valid': False, 'error': 'Invalid token'}, status=400)
+
+
+# Debug endpoints
+@extend_schema(
+    request=None,
+    responses={
+        200: OpenApiResponse(description='User info retrieved'),
+        404: OpenApiResponse(description='User not found'),
+    }
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def debug_user_info_view(request):
+    """Debug: User info"""
+    return debug_user_info(request)
+
+
+@extend_schema(
+    request=None,
+    responses={
+        200: OpenApiResponse(description='User refreshed'),
+        404: OpenApiResponse(description='User not found'),
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def force_refresh_user_view(request):
+    """Debug: Force refresh user"""
+    return force_refresh_user(request)

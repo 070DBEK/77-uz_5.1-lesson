@@ -1,13 +1,12 @@
 from rest_framework import permissions
 from django.contrib.auth import get_user_model
 
-
 User = get_user_model()
 
 
 class IsSuperAdmin(permissions.BasePermission):
     """
-    Super Admin - all rights
+    Super Admin - barcha huquqlar
     """
 
     def has_permission(self, request, view):
@@ -20,7 +19,7 @@ class IsSuperAdmin(permissions.BasePermission):
 
 class IsAdmin(permissions.BasePermission):
     """
-    Admin - manage sellers
+    Admin - sotuvchilarni boshqarish
     """
 
     def has_permission(self, request, view):
@@ -33,7 +32,7 @@ class IsAdmin(permissions.BasePermission):
 
 class IsSeller(permissions.BasePermission):
     """
-    Seller - only own products
+    Seller - faqat o'z mahsulotlari
     """
 
     def has_permission(self, request, view):
@@ -44,9 +43,22 @@ class IsSeller(permissions.BasePermission):
         )
 
 
+class CanApplyForSeller(permissions.BasePermission):
+    """
+    Customer'lar seller bo'lish uchun ariza bera oladi
+    """
+
+    def has_permission(self, request, view):
+        return (
+                request.user and
+                request.user.is_authenticated and
+                request.user.role == 'customer'  # Faqat customer'lar ariza bera oladi
+        )
+
+
 class IsSellerOrReadOnly(permissions.BasePermission):
     """
-    Seller - everyone can read, only seller can write
+    Seller - o'qish uchun hamma, yozish uchun faqat seller
     """
 
     def has_permission(self, request, view):
@@ -61,12 +73,15 @@ class IsSellerOrReadOnly(permissions.BasePermission):
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
-    Only owner or admin
+    Faqat owner yoki admin
     """
 
     def has_object_permission(self, request, view, obj):
+        # Super admin va admin hamma narsaga ruxsat
         if request.user.role in ['super_admin', 'admin']:
             return True
+
+        # Owner o'z obyektlariga ruxsat
         if hasattr(obj, 'seller'):
             return obj.seller == request.user
         elif hasattr(obj, 'user'):
@@ -77,7 +92,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
 
 class CanManageSellers(permissions.BasePermission):
     """
-    To manage sellers
+    Sotuvchilarni boshqarish uchun
     """
 
     def has_permission(self, request, view):
@@ -86,4 +101,3 @@ class CanManageSellers(permissions.BasePermission):
                 request.user.is_authenticated and
                 request.user.role in ['super_admin', 'admin']
         )
-
