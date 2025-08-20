@@ -7,6 +7,7 @@ from .models import User, SellerRegistration
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def debug_user_info(request):
+    """Debug user information"""
     user = request.user
 
     try:
@@ -39,6 +40,7 @@ def debug_user_info(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def force_refresh_user(request):
+    """Force refresh user data"""
     user = request.user
     user.refresh_from_db()
 

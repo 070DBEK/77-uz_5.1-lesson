@@ -29,13 +29,11 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    # Public role choices (faqat customer va seller)
     PUBLIC_ROLE_CHOICES = [
         ('customer', 'Customer'),
         ('seller', 'Seller'),
     ]
 
-    # Internal role choices (barcha rollar)
     ROLE_CHOICES = [
         ('super_admin', 'Super Admin'),
         ('admin', 'Admin'),
@@ -58,7 +56,7 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = UserManager()  # Custom manager qo'shish
+    objects = UserManager()
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -67,6 +65,7 @@ class User(AbstractUser):
         db_table = 'users'
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.phone_number
@@ -84,7 +83,6 @@ class User(AbstractUser):
         return self.role == 'seller'
 
     def save(self, *args, **kwargs):
-        # Super admin avtomatik staff va superuser bo'ladi
         if self.role == 'super_admin':
             self.is_staff = True
             self.is_superuser = True
@@ -94,9 +92,6 @@ class User(AbstractUser):
         else:
             self.is_staff = False
             self.is_superuser = False
-
-        # Debug uchun print qo'shish
-        print(f"Saving user {self.phone_number}: role={self.role}, is_verified={self.is_verified}")
 
         super().save(*args, **kwargs)
 
@@ -115,6 +110,7 @@ class Address(models.Model):
         db_table = 'addresses'
         verbose_name = 'Address'
         verbose_name_plural = 'Addresses'
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.phone_number} - {self.name}"
@@ -141,6 +137,7 @@ class SellerRegistration(models.Model):
         db_table = 'seller_registrations'
         verbose_name = 'Seller Registration'
         verbose_name_plural = 'Seller Registrations'
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.full_name} - {self.status}"

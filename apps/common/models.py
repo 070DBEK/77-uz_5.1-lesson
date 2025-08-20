@@ -9,6 +9,7 @@ class Region(models.Model):
         db_table = 'regions'
         verbose_name = 'Region'
         verbose_name_plural = 'Regions'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -23,6 +24,7 @@ class District(models.Model):
         db_table = 'districts'
         verbose_name = 'District'
         verbose_name_plural = 'Districts'
+        ordering = ['name']
 
     def __str__(self):
         return f"{self.region.name} - {self.name}"
@@ -39,6 +41,7 @@ class StaticPage(models.Model):
         db_table = 'static_pages'
         verbose_name = 'Static Page'
         verbose_name_plural = 'Static Pages'
+        ordering = ['title']
 
     def __str__(self):
         return self.title or self.slug

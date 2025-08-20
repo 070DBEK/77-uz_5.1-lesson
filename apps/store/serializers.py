@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from .models import Category, Ad, AdPhoto, FavouriteProduct, MySearch, PopularSearchTerm
 from drf_spectacular.utils import extend_schema_field
 
+
 User = get_user_model()
 
 

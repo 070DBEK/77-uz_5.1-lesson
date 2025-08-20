@@ -24,7 +24,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    """Admin uchun user list"""
+    """Admin user list"""
 
     class Meta:
         model = User
@@ -44,9 +44,7 @@ class UserProfileEditSerializer(serializers.ModelSerializer):
         if address_id:
             try:
                 address = Address.objects.get(id=address_id, user=instance)
-                # Set all addresses as non-default
                 instance.addresses.update(is_default=False)
-                # Set selected address as default
                 address.is_default = True
                 address.save()
             except Address.DoesNotExist:
@@ -79,8 +77,6 @@ class UserLoginSerializer(serializers.Serializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True)
 
-    # Role field'ni olib tashlaymiz - faqat customer bo'ladi
-
     class Meta:
         model = User
         fields = ['full_name', 'phone_number', 'password', 'password_confirm']
@@ -95,7 +91,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-        # Har doim customer sifatida yaratish
         validated_data['role'] = 'customer'
         user = User.objects.create_user(**validated_data)
         return user
@@ -115,12 +110,10 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
         fields = ['full_name', 'project_name', 'category', 'phone_number', 'address']
 
     def validate(self, attrs):
-        # Faqat customer'lar seller bo'lish uchun ariza bera oladi
         user = self.context['request'].user
         if user.role != 'customer':
             raise serializers.ValidationError("Only customers can apply to become sellers")
 
-        # Avval ariza berganmi tekshirish
         if SellerRegistration.objects.filter(user=user, status__in=['pending', 'approved']).exists():
             raise serializers.ValidationError(
                 "You have already submitted a seller application or you are already a seller")
@@ -131,7 +124,6 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         address_data = validated_data.pop('address')
 
-        # Convert address dict to string for storage
         address_str = f"{address_data.get('name', '')}"
         validated_data['address'] = address_str
         validated_data['user'] = user

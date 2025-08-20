@@ -25,7 +25,6 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    # Admin actions qo'shish
     actions = ['make_verified', 'make_unverified', 'make_seller', 'make_customer']
 
     def make_verified(self, request, queryset):
@@ -84,7 +83,6 @@ class SellerRegistrationAdmin(admin.ModelAdmin):
         for registration in queryset:
             registration.status = 'approved'
             registration.save()
-            # Update user role to seller
             registration.user.role = 'seller'
             registration.user.save()
         self.message_user(request, f'{queryset.count()} registrations approved.')

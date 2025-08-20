@@ -34,8 +34,8 @@ class UserProfileEditView(generics.UpdateAPIView):
         return self.request.user
 
 
-# Admin endpoints
 class UserListView(generics.ListAPIView):
+    """Admin: All users list"""
     serializer_class = UserListSerializer
     permission_classes = [IsAdmin]
 
@@ -50,6 +50,7 @@ class UserListView(generics.ListAPIView):
 
 
 class SellerRegistrationListView(generics.ListAPIView):
+    """Admin: Seller registrations list"""
     queryset = SellerRegistration.objects.all()
     serializer_class = SellerRegistrationListSerializer
     permission_classes = [CanManageSellers]
@@ -65,6 +66,7 @@ class SellerRegistrationListView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def approve_seller_registration(request, registration_id):
+    """Admin: Approve seller registration"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
 
@@ -76,7 +78,6 @@ def approve_seller_registration(request, registration_id):
         user.is_verified = True
         user.save()
 
-        # Refresh from database to confirm changes
         user.refresh_from_db()
 
         return Response({
@@ -103,8 +104,10 @@ def approve_seller_registration(request, registration_id):
 @api_view(['POST'])
 @permission_classes([CanManageSellers])
 def reject_seller_registration(request, registration_id):
+    """Admin: Reject seller registration"""
     try:
         registration = SellerRegistration.objects.get(id=registration_id)
+
         registration.status = 'rejected'
         registration.save()
 
@@ -138,6 +141,7 @@ def reject_seller_registration(request, registration_id):
 @api_view(['POST'])
 @permission_classes([IsSuperAdmin])
 def create_admin_user(request):
+    """Super Admin: Create admin user"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
@@ -151,7 +155,6 @@ def create_admin_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Public endpoints
 @extend_schema(
     request=UserLoginSerializer,
     responses={
@@ -162,7 +165,7 @@ def create_admin_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
-    """Login endpoint - PUBLIC"""
+    """Login endpoint"""
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data['user']
@@ -186,7 +189,7 @@ def login_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
-    """Register endpoint - Har doim customer sifatida ro'yxatdan o'tish"""
+    """Register endpoint"""
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
@@ -210,6 +213,7 @@ def register_view(request):
 @api_view(['POST'])
 @permission_classes([CanApplyForSeller])
 def seller_registration_view(request):
+    """Customer to Seller application"""
     serializer = SellerRegistrationSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         registration = serializer.save()
@@ -270,6 +274,7 @@ def token_verify_view(request):
         from django.contrib.auth import get_user_model
 
         User = get_user_model()
+
         UntypedToken(token)
 
         from rest_framework_simplejwt.tokens import AccessToken
@@ -290,7 +295,6 @@ def token_verify_view(request):
         return Response({'valid': False, 'error': 'Invalid token'}, status=400)
 
 
-# Debug endpoints
 @extend_schema(
     request=None,
     responses={

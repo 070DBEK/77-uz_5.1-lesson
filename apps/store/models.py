@@ -17,6 +17,7 @@ class Category(models.Model):
         db_table = 'categories'
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
+        ordering = ['name']  # ORDERING QO'SHILDI
 
     def __str__(self):
         return self.name
@@ -92,6 +93,7 @@ class AdPhoto(models.Model):
         db_table = 'ad_photos'
         verbose_name = 'Ad Photo'
         verbose_name_plural = 'Ad Photos'
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
         if self.is_main:
@@ -111,6 +113,7 @@ class FavouriteProduct(models.Model):
         verbose_name = 'Favourite Product'
         verbose_name_plural = 'Favourite Products'
         unique_together = [['user', 'product'], ['device_id', 'product']]
+        ordering = ['-created_at']
 
 
 class MySearch(models.Model):
@@ -126,6 +129,7 @@ class MySearch(models.Model):
         db_table = 'my_searches'
         verbose_name = 'My Search'
         verbose_name_plural = 'My Searches'
+        ordering = ['-created_at']
 
 
 class PopularSearchTerm(models.Model):

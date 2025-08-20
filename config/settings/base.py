@@ -2,11 +2,6 @@ import os
 from pathlib import Path
 from decouple import config
 
-# Django settings module detection
-django_settings_module = os.environ.get('DJANGO_SETTINGS_MODULE', 'config.settings.development').split('.')[-1]
-if not django_settings_module:
-    django_settings_module = 'development'
-
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
@@ -92,10 +87,15 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files - TUZATILDI
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Static files directory yaratish
+STATICFILES_DIRS = []
+static_dir = BASE_DIR / 'static'
+if static_dir.exists():
+    STATICFILES_DIRS = [static_dir]
 
 # Media files
 MEDIA_URL = '/media/'
@@ -103,13 +103,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# REST Framework
+# REST Framework - STANDART JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'apps.accounts.authentication.CustomJWTAuthentication',  # Custom authentication
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # ✅ STANDART
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Default AllowAny
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -119,8 +119,6 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'UNAUTHENTICATED_USER': 'django.contrib.auth.models.AnonymousUser',
-    'UNAUTHENTICATED_TOKEN': None,
 }
 
 # JWT Settings
@@ -143,17 +141,11 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Spectacular Settings
 SPECTACULAR_SETTINGS = {
-    'TITLE': '77 uz APIS',
-    'DESCRIPTION': 'Bu hujjat API ro\'yxatini ko\'rsatadi va ularni tekshirish imkoniyatini beradi',
+    'TITLE': '77.uz API',
+    'DESCRIPTION': 'API documentation for 77.uz platform',
     'VERSION': 'v1',
     'SERVE_INCLUDE_SCHEMA': False,
     'CONTACT': {'email': 'info@uic.group'},
-    'SERVERS': [
-        {
-            'url': 'https://admin.77.uz/api/v1' if django_settings_module != 'development' else 'http://localhost:8000/api/v1',
-            'description': 'Ishlab chiqarish serveri' if django_settings_module != 'development' else 'Development serveri'
-        },
-    ],
     'SCHEMA_PATH_PREFIX': '/api/v1/',
     'COMPONENT_SPLIT_REQUEST': True,
 }

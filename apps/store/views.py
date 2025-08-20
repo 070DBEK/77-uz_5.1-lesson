@@ -37,7 +37,7 @@ class SubCategoryListView(generics.ListAPIView):
 
 class AdCreateView(generics.CreateAPIView):
     serializer_class = AdCreateSerializer
-    permission_classes = [IsSeller]  # Faqat seller yarata oladi
+    permission_classes = [IsSeller]
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
@@ -51,7 +51,6 @@ class AdDetailView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        # Increment view count
         Ad.objects.filter(id=instance.id).update(view_count=F('view_count') + 1)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -72,12 +71,11 @@ class AdListView(generics.ListAPIView):
 
 class MyAdListView(generics.ListAPIView):
     serializer_class = MyAdSerializer
-    permission_classes = [IsSeller]  # Faqat seller
+    permission_classes = [IsSeller]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
 
     def get_queryset(self):
-        # Swagger uchun fake view check
         if getattr(self, 'swagger_fake_view', False):
             return Ad.objects.none()
         return Ad.objects.filter(seller=self.request.user)
@@ -85,7 +83,7 @@ class MyAdListView(generics.ListAPIView):
 
 class MyAdDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = MyAdDetailSerializer
-    permission_classes = [IsSeller, IsOwnerOrAdmin]  # Owner yoki admin
+    permission_classes = [IsSeller, IsOwnerOrAdmin]
 
     def get_queryset(self):
         if self.request.user.role in ['super_admin', 'admin']:
@@ -162,7 +160,6 @@ class MyFavouriteProductListView(generics.ListAPIView):
     filterset_fields = ['category']
 
     def get_queryset(self):
-        # Swagger uchun fake view check
         if getattr(self, 'swagger_fake_view', False):
             return Ad.objects.none()
 
@@ -198,7 +195,6 @@ class MySearchListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Swagger uchun fake view check
         if getattr(self, 'swagger_fake_view', False):
             return MySearch.objects.none()
         return MySearch.objects.filter(user=self.request.user)
@@ -249,7 +245,6 @@ class SearchCategoryProductView(generics.ListAPIView):
         results = []
 
         if query:
-            # Search categories
             categories = Category.objects.filter(
                 Q(name__icontains=query) & Q(is_active=True)
             )[:5]
@@ -262,7 +257,6 @@ class SearchCategoryProductView(generics.ListAPIView):
                     'icon': category.icon.url if category.icon else None
                 })
 
-            # Search products
             ads = Ad.objects.filter(
                 Q(name_uz__icontains=query) | Q(name_ru__icontains=query),
                 status='active', is_active=True
